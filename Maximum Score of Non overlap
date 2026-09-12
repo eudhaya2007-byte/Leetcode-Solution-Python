@@ -1,0 +1,44 @@
+from bisect import bisect_right
+
+class Solution:
+    def maximumWeight(self, intervals):
+        n = len(intervals)
+
+        # Sort by starting time
+        arr = sorted(
+            [(l, r, w, i) for i, (l, r, w) in enumerate(intervals)]
+        )
+
+        starts = [x[0] for x in arr]
+
+        # Find the first interval whose start is strictly greater than r
+        nxt = [0] * n
+        for i in range(n):
+            nxt[i] = bisect_right(starts, arr[i][1])
+
+        # dp[i][k] = best (weight, indices) using intervals from i onward,
+        # choosing at most k intervals
+        dp = [[(0, ()) for _ in range(5)] for _ in range(n + 1)]
+
+        for i in range(n - 1, -1, -1):
+            l, r, w, idx = arr[i]
+
+            for k in range(1, 5):
+                # Skip current interval
+                skip = dp[i + 1][k]
+
+                # Take current interval
+                next_score, next_indices = dp[nxt[i]][k - 1]
+                take_indices = tuple(sorted((idx,) + next_indices))
+                take = (w + next_score, take_indices)
+
+                # Choose maximum weight
+                # If weights are equal, choose lexicographically smaller indices
+                if take[0] > skip[0]:
+                    dp[i][k] = take
+                elif take[0] < skip[0]:
+                    dp[i][k] = skip
+                else:
+                    dp[i][k] = min(take, skip)
+
+        return list(dp[0][4][1])
