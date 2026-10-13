@@ -1,0 +1,12 @@
+
+class Solution(object):
+    def maxAlternatingSum(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
+        squares = sorted(x * x for x in nums)
+        n = len(squares)
+        negative_count = n // 2
+
+        return sum(squares[negative_count:]) - sum(squares[:negative_count])
