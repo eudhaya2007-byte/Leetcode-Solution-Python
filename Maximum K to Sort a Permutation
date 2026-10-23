@@ -1,0 +1,16 @@
+class Solution(object):
+    def sortPermutation(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: int
+        """
+        k = -1
+        for i in range(len(nums)):
+            if nums[i] != i:
+                if k == -1:
+                    k = nums[i]
+                else:
+                    k &= nums[i]
+                    
+        # If no elements are out of place, k can be 0 (or any value since it's already sorted)
+        return k if k != -1 else 0
