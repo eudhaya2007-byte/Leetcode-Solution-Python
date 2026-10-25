@@ -1,0 +1,40 @@
+class Solution(object):
+    def closedIsland(self, grid):
+        """
+        :type grid: List[List[int]]
+        :rtype: int
+        """
+        if not grid or not grid[0]:
+            return 0
+            
+        m, n = len(grid), len(grid[0])
+        
+        def dfs(r, c):
+            # If we reach out of bounds, the island touches the border (not closed)
+            if r < 0 or r >= m or c < 0 or c >= n:
+                return False
+            # If it's water (1) or already visited, return True
+            if grid[r][c] == 1:
+                return True
+                
+            # Mark current land cell as visited by turning it into water (1)
+            grid[r][c] = 1
+            
+            # Check all 4 directions. Use bitwise AND (&) to ensure all paths are explored 
+            # and don't short-circuit.
+            up = dfs(r - 1, c)
+            down = dfs(r + 1, c)
+            left = dfs(r, c - 1)
+            right = dfs(r, c + 1)
+            
+            return up and down and left and right
+
+        closed_islands = 0
+        for i in range(m):
+            for j in range(n):
+                # If we find an unvisited land cell (0), start DFS to flood the island
+                if grid[i][j] == 0:
+                    if dfs(i, j):
+                        closed_islands += 1
+                        
+        return closed_islands
