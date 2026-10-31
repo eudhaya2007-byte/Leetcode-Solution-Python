@@ -1,0 +1,88 @@
+class Solution(object):
+
+    def uniquePaths(self, grid):
+        """:type grid: List[List[int]]
+
+        :rtype: int
+        """
+        MOD = 10**9 + 7
+        m = len(grid)
+        n = len(grid[0])
+
+        # Memoization cache for jump results: memo[(r, c, move_dir)] = (target_r, target_c) or None
+        memo = {}
+
+        def get_jump(r, c, move_dir):
+            state = (r, c, move_dir)
+            if state in memo:
+                return memo[state]
+
+            curr_r, curr_c = r, c
+            curr_move = move_dir
+            visited = set()
+
+            while True:
+                # To prevent infinite loops in degenerate loops of mirrors
+                if (curr_r, curr_c, curr_move) in visited:
+                    memo[state] = None
+                    return None
+                visited.add((curr_r, curr_c, curr_move))
+
+                if curr_move == 0:
+                    nr, nc = curr_r, curr_c + 1
+                else:
+                    nr, nc = curr_r + 1, curr_c
+
+                if not (0 <= nr < m and 0 <= nc < n):
+                    memo[state] = None
+                    return None
+
+                if grid[nr][nc] == 1:
+                    # Hit a mirror!
+                    if curr_move == 0:
+                        curr_move = 1
+                        curr_r, curr_c = nr + 1, nc
+                    else:
+                        curr_move = 0
+                        curr_r, curr_c = nr, nc + 1
+
+                    if not (0 <= curr_r < m and 0 <= curr_c < n):
+                        memo[state] = None
+                        return None
+
+                    if grid[curr_r][curr_c] == 1:
+                        # Step back to align for loop continuation
+                        curr_r = curr_r - 1 if curr_move == 1 else curr_r
+                        curr_c = curr_c if curr_move == 1 else curr_c - 1
+                        continue
+                    else:
+                        res = (curr_r, curr_c)
+                        memo[state] = res
+                        return res
+                else:
+                    res = (nr, nc)
+                    memo[state] = res
+                    return res
+
+        # DP table
+        dp = [[0] * n for _ in range(m)]
+        dp[0][0] = 1
+
+        for r in range(m):
+            for c in range(n):
+                if dp[r][c] == 0:
+                    continue
+
+                # Try moving right
+                nxt_right = get_jump(r, c, 0)
+                if nxt_right:
+                    nr, nc = nxt_right
+                    dp[nr][nc] = (dp[nr][nc] + dp[r][c]) % MOD
+
+                # Try moving down
+                nxt_down = get_jump(r, c, 1)
+                if nxt_down:
+                    nr, nc = nxt_down
+                    dp[nr][nc] = (dp[nr][nc] + dp[r][c]) % MOD
+
+        return dp[m - 1][n - 1]
