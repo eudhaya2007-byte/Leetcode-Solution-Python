@@ -1,0 +1,51 @@
+import bisect
+import heapq
+
+class Solution(object):
+    def busiestServers(self, k, arrival, load):
+        """:type k: int
+        :type arrival: List[int]
+        :type load: List[int]
+        :rtype: List[int]"""
+        # Min-heap to store servers that are currently busy: (free_time, server_id)
+        busy_servers = []
+        
+        # Sorted list of available server IDs
+        available_servers = list(range(k))
+        
+        # Track the request count for each server
+        request_counts = [0] * k
+        
+        for i, arr_time in enumerate(arrival):
+            # Free up servers whose tasks have finished by the current arrival time
+            while busy_servers and busy_servers[0][0] <= arr_time:
+                _, server_id = heapq.heappop(busy_servers)
+                # Insert back into available servers maintaining sorted order
+                bisect.insort(available_servers, server_id)
+            
+            # If no servers are available, drop the request
+            if not available_servers:
+                continue
+            
+            # Find the preferred server index: (i % k)
+            preferred = i % k
+            
+            # Use binary search to find the first available server >= preferred
+            idx = bisect.bisect_left(available_servers, preferred)
+            
+            # If no server >= preferred is available, wrap around to the beginning (index 0)
+            if idx == len(available_servers):
+                idx = 0
+            
+            # Assign the request to this server
+            server_id = available_servers.pop(idx)
+            request_counts[server_id] += 1
+            
+            # Push the server into the busy heap with its new release time
+            heapq.heappush(busy_servers, (arr_time + load[i], server_id))
+        
+        # Find the maximum number of requests handled by any server
+        max_handled = max(request_counts)
+        
+        # Collect all servers that handled the maximum number of requests
+        return [i for i, count in enumerate(request_counts) if count == max_handled]
