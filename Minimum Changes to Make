@@ -1,0 +1,69 @@
+class Solution(object):
+    def minimumChanges(self, s, k):
+        """
+        :type s: str
+        :type k: int
+        :rtype: int
+        """
+        n = len(s)
+        
+        
+        divisors = [[] for _ in range(n + 1)]
+        for length in range(1, n + 1):
+            for d in range(1, length):
+                if length % d == 0:
+                    divisors[length].append(d)
+        
+        
+        cost = [[float('inf')] * n for _ in range(n)]
+        
+        for i in range(n):
+            for j in range(i + 1, n):
+                length = j - i + 1
+                min_changes_for_substring = float('inf')
+                 
+               
+                for d in divisors[length]:
+                    current_changes = 0
+                    
+                    for group_start in range(d):
+                       
+                        group_chars = []
+                        idx = i + group_start
+                        while idx <= j:
+                            group_chars.append(s[idx])
+                            idx += d
+                        
+                        
+                        left, right = 0, len(group_chars) - 1
+                        while left < right:
+                            if group_chars[left] != group_chars[right]:
+                                current_changes += 1
+                            left += 1
+                            right -= 1
+                            
+                    min_changes_for_substring = min(min_changes_for_substring, current_changes)
+                
+                cost[i][j] = min_changes_for_substring
+
+        
+        memo = {}
+        
+        def dp(i, parts):
+            if parts == 1:
+                return cost[i][n - 1]
+            if i >= n:
+                return float('inf')
+            if (i, parts) in memo:
+                return memo[(i, parts)]
+            
+            res = float('inf')
+            
+           
+            for x in range(i, n - parts):
+                res = min(res, cost[i][x] + dp(x + 1, parts - 1))
+                
+            memo[(i, parts)] = res
+            return res
+
+        return dp(0, k)
